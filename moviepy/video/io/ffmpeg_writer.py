@@ -150,7 +150,13 @@ class FFMPEG_VideoWriter:
     def write_frame(self, img_array):
         """Writes one frame in the file."""
         try:
-            self.proc.stdin.write(img_array.tobytes())
+            # proc stdin accepts C order array
+            # numpy array should be C order natively, if not transform them
+            # using copy(order='C') to format data is sometimes more efficient
+            # than tobytes()
+            if not img_array.flags["C_CONTIGUOUS"]:
+                img_array = img_array.copy(order="C")
+            self.proc.stdin.write(img_array)
         except IOError as err:
             _, ffmpeg_error = self.proc.communicate()
             if ffmpeg_error is not None:
@@ -163,7 +169,7 @@ class FFMPEG_VideoWriter:
 
             error = (
                 f"{err}\n\nMoviePy error: FFMPEG encountered the following error while "
-                f"writing file {self.filename}:\n\n {ffmpeg_error}"
+                f"writing file {self.filename}: \n\n {ffmpeg_error}"
             )
 
             if "Unknown encoder" in ffmpeg_error:
@@ -336,7 +342,7 @@ def ffmpeg_write_image(filename, image, logfile=False, pixel_format=None):
     if proc.returncode:
         error = (
             f"{err}\n\nMoviePy error: FFMPEG encountered the following error while "
-            f"writing file {filename} with command {cmd}:\n\n {err.decode()}"
+            f"writing file {filename} with command {cmd}: \n\n {err.decode()}"
         )
 
         raise IOError(error)

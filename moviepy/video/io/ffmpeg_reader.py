@@ -136,8 +136,6 @@ class FFMPEG_VideoReader:
             ]
         )
 
-        print(" ".join(cmd))
-
         popen_params = cross_platform_popen_params(
             {
                 "bufsize": self.bufsize,
@@ -515,7 +513,7 @@ class FFmpegInfosParser:
                     )
                 except NotImplementedError as exc:
                     warnings.warn(
-                        f"{str(exc)}\nffmpeg output:\n\n{self.infos}", UserWarning
+                        f"{str(exc)}\nffmpeg output: \n\n{self.infos}", UserWarning
                     )
                 else:
                     self.result.update(global_data)
@@ -877,4 +875,4 @@ def ffmpeg_parse_infos(
             raise IsADirectoryError(f"'{filename}' is a directory")
         elif not os.path.exists(filename):
             raise FileNotFoundError(f"'{filename}' not found")
-        raise IOError(f"Error passing `ffmpeg -i` command output:\n\n{infos}") from exc
+        raise IOError(f"Error passing `ffmpeg -i` command output: \n\n{infos}") from exc
